@@ -1,0 +1,6 @@
+.next
+node_modules
+data/trial-db.json
+.env.local
+dev.log
+repo/

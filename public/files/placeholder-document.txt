@@ -1,0 +1,2 @@
+This is a placeholder file for Project Zero V0.1 document links.
+It exists so the document archive can open a working example file locally.
