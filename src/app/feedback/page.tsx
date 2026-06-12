@@ -1,8 +1,11 @@
 import { CartoonPerson } from "@/components/CartoonPerson";
+import { FeedbackBoard } from "@/components/FeedbackBoard";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { SectionHeader } from "@/components/SectionHeader";
+import { readTrialDb } from "@/lib/trialDb";
 
 export default function FeedbackPage() {
+  const { feedback } = readTrialDb();
   return (
     <div className="space-y-8">
       <section className="grid gap-5 rounded-[1.5rem] border border-white/70 bg-white/85 p-5 shadow-soft sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center">
@@ -22,6 +25,8 @@ export default function FeedbackPage() {
       </section>
 
       <FeedbackForm />
+      <SectionHeader eyebrow="คำตอบล่าสุด" title="เสียงสะท้อนที่ส่งเข้ามา" description="รายการที่ผู้ใช้ส่งเข้ามาจะแสดงตรงนี้เพื่อให้ตรวจดูได้ง่าย" />
+      <FeedbackBoard initialFeedback={feedback} />
     </div>
   );
 }

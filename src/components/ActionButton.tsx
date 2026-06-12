@@ -21,6 +21,7 @@ type LinkButtonProps = CommonProps & {
 
 type NativeButtonProps = CommonProps & {
   type?: "button" | "submit" | "reset";
+  disabled?: boolean;
   onClick?: () => void;
 };
 
@@ -54,9 +55,9 @@ export function ActionLink({ href, children, className, variant = "primary", siz
   );
 }
 
-export function ActionButton({ children, className, variant = "primary", size = "md", type = "button", onClick }: NativeButtonProps) {
+export function ActionButton({ children, className, variant = "primary", size = "md", type = "button", disabled, onClick }: NativeButtonProps) {
   return (
-    <button type={type} onClick={onClick} className={cn(baseClassName, sizeClasses[size], variantClasses[variant], className)}>
+    <button type={type} disabled={disabled} onClick={onClick} className={cn(baseClassName, sizeClasses[size], variantClasses[variant], disabled && "cursor-not-allowed opacity-60", className)}>
       <Spark />
       <span>{children}</span>
     </button>

@@ -1,23 +1,48 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ActionButton } from "@/components/ActionButton";
+import { appendBrowserDocument } from "@/lib/browserTrialStore";
 
 export function DocumentForm() {
+  const router = useRouter();
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsError(false);
+    setLoading(true);
     const formData = new FormData(event.currentTarget);
     const payload = Object.fromEntries(formData.entries());
-    const response = await fetch("/api/documents", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+    appendBrowserDocument({
+      id: `doc-local-${Date.now()}`,
+      name: String(payload.name ?? ""),
+      category: String(payload.category ?? ""),
+      owner: String(payload.owner ?? ""),
+      updatedAt: String(payload.updatedAt ?? ""),
+      visibility: String(payload.visibility ?? "สาธารณะ") as never,
+      fileUrl: String(payload.fileUrl ?? ""),
+      summary: String(payload.summary ?? ""),
     });
-    setMessage(response.ok ? "บันทึกเอกสารเรียบร้อย" : "บันทึกเอกสารไม่สำเร็จ");
-    if (response.ok) event.currentTarget.reset();
+    try {
+      const response = await fetch("/api/documents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+      setMessage(response.ok && result?.ok ? "บันทึกเอกสารเรียบร้อย" : `บันทึกเอกสารไว้ในเบราว์เซอร์แล้ว (${response.status})`);
+      event.currentTarget.reset();
+      router.refresh();
+    } catch {
+      setMessage("บันทึกเอกสารไว้ในเบราว์เซอร์แล้ว");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -32,8 +57,10 @@ export function DocumentForm() {
         <input name="fileUrl" placeholder="ลิงก์ไฟล์" className="min-h-11 rounded-2xl border border-line px-4 sm:col-span-2" />
       </div>
       <textarea name="summary" placeholder="สรุปสั้น ๆ" rows={3} className="w-full rounded-2xl border border-line px-4 py-3" />
-      <ActionButton type="submit" size="lg" className="w-full sm:w-auto">บันทึกเอกสาร</ActionButton>
-      {message ? <p className="text-sm text-slate-600">{message}</p> : null}
+      <ActionButton type="submit" size="lg" className="w-full sm:w-auto" disabled={loading as never}>
+        {loading ? "กำลังบันทึก..." : "บันทึกเอกสาร"}
+      </ActionButton>
+      {message ? <p className={`text-sm font-medium ${isError ? "text-red-600" : "text-emerald-700"}`}>{message}</p> : null}
     </form>
   );
 }

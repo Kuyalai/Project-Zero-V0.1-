@@ -1,4 +1,4 @@
-import { HandoverCard } from "@/components/HandoverCard";
+import { HandoverBoard } from "@/components/HandoverBoard";
 import { HandoverForm } from "@/components/HandoverForm";
 import { SectionHeader } from "@/components/SectionHeader";
 import { readTrialData } from "@/lib/trialDb";
@@ -65,26 +65,7 @@ export default function HandoverPage() {
         </div>
       </section>
 
-      <div className="space-y-8">
-        {categories.map((category) => {
-          const items = handoverNotes.filter((note) => note.category === category);
-          return (
-            <section key={category} className="space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold text-ink">{category}</h2>
-                <span className="rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-slate-600">
-                  {items.length} รายการ
-                </span>
-              </div>
-              <div className="grid gap-4 lg:grid-cols-2">
-                {items.map((note) => (
-                  <HandoverCard key={note.id} note={note} />
-                ))}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+      <HandoverBoard initialNotes={handoverNotes} categories={categories} />
     </div>
   );
 }

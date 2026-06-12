@@ -1,21 +1,28 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
 import { ActionButton } from "@/components/ActionButton";
 import { Badge } from "@/components/Badge";
+import { readBrowserTrialDb, writeBrowserTrialDb } from "@/lib/browserTrialStore";
 
 const roles = ["กรรมการ", "หัวหน้าทีม", "เลขานุการ", "ผู้ช่วยงาน", "อื่น ๆ"];
 
 export function FeedbackForm() {
+  const router = useRouter();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [rating, setRating] = useState(5);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    setSuccess("");
+    setLoading(true);
 
     const formData = new FormData(event.currentTarget);
     const payload = {
@@ -26,21 +33,37 @@ export function FeedbackForm() {
       suggestions: String(formData.get("suggestions") ?? ""),
       rating,
     };
+    const current = readBrowserTrialDb();
+    const nextFeedback = [
+      {
+        ...payload,
+        createdAt: new Date().toISOString(),
+      },
+      ...(((current as unknown as { feedback?: Array<typeof payload & { createdAt: string }> }).feedback) ?? []),
+    ];
+    writeBrowserTrialDb({ ...(current as unknown as Record<string, unknown>), feedback: nextFeedback } as never);
 
-    const response = await fetch("/api/feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      setError("ส่งความคิดเห็นไม่สำเร็จ ลองอีกครั้งได้เลย");
-      return;
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = (await response.json()) as { ok?: boolean; message?: string };
+      if (!response.ok || !result.ok) {
+        setError(result.message ?? "ส่งความคิดเห็นไม่สำเร็จ ลองอีกครั้งได้เลย");
+        return;
+      }
+      setSubmitted(true);
+      setSuccess("ส่งความคิดเห็นเรียบร้อย");
+      event.currentTarget.reset();
+      setRating(5);
+      router.refresh();
+    } catch {
+      setError("เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้ง");
+    } finally {
+      setLoading(false);
     }
-
-    setSubmitted(true);
-    event.currentTarget.reset();
-    setRating(5);
   }
 
   return (
@@ -138,10 +161,11 @@ export function FeedbackForm() {
         </div>
 
         <input type="hidden" name="rating" value={rating} />
-        <ActionButton type="submit" size="lg" className="w-full">
-          ส่งความคิดเห็น
+        <ActionButton type="submit" size="lg" className="w-full" disabled={loading as never}>
+          {loading ? "กำลังส่ง..." : "ส่งความคิดเห็น"}
         </ActionButton>
         {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
+        {success ? <p className="text-sm font-medium text-emerald-700">{success}</p> : null}
       </form>
 
       <aside className="space-y-4 rounded-[1.35rem] border border-line bg-calm-50 p-5 shadow-soft sm:p-6">

@@ -1,6 +1,6 @@
 import { SectionHeader } from "@/components/SectionHeader";
-import { TaskCard } from "@/components/TaskCard";
 import { TaskForm } from "@/components/TaskForm";
+import { TaskBoard } from "@/components/TaskBoard";
 import { readTrialData } from "@/lib/trialDb";
 import type { TaskStatus } from "@/data/mockData";
 
@@ -8,11 +8,6 @@ const statuses: TaskStatus[] = ["ยังไม่เริ่ม", "กำล�
 
 export default function TasksPage() {
   const { tasks } = readTrialData();
-  const grouped = statuses.map((status) => ({
-    status,
-    items: tasks.filter((task) => task.status === status),
-  }));
-
   return (
     <div className="space-y-8">
       <TaskForm />
@@ -37,29 +32,7 @@ export default function TasksPage() {
         </div>
       </section>
 
-      <div className="space-y-6">
-        {grouped.map(({ status, items }) => (
-          <section key={status} className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-ink">{status}</h2>
-              <span className="rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-slate-600">
-                {items.length} รายการ
-              </span>
-            </div>
-            {items.length > 0 ? (
-              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                {items.map((task) => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-line bg-white p-5 text-sm text-slate-500">
-                ไม่มีงานในสถานะนี้
-              </div>
-            )}
-          </section>
-        ))}
-      </div>
+      <TaskBoard initialTasks={tasks} statuses={statuses} />
     </div>
   );
 }

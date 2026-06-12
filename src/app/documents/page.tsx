@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ActionLink } from "@/components/ActionButton";
-import { DocumentCard } from "@/components/DocumentCard";
+import { DocumentBoard } from "@/components/DocumentBoard";
 import { DocumentForm } from "@/components/DocumentForm";
 import { SectionHeader } from "@/components/SectionHeader";
 import { readTrialData } from "@/lib/trialDb";
@@ -73,11 +73,7 @@ export default function DocumentsPage() {
         </div>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-        {documents.map((document) => (
-          <DocumentCard key={document.id} document={document} />
-        ))}
-      </div>
+      <DocumentBoard initialDocuments={documents} />
     </div>
   );
 }
