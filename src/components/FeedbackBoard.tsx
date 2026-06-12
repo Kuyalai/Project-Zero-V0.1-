@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/Badge";
-import { readBrowserTrialDb } from "@/lib/browserTrialStore";
+import { readBrowserFeedback } from "@/lib/browserTrialStore";
 
 type FeedbackItem = {
   name: string;
@@ -24,8 +24,7 @@ export function FeedbackBoard({ initialFeedback }: Props) {
 
   useEffect(() => {
     const sync = () => {
-      const browserDb = readBrowserTrialDb();
-      const localFeedback = (browserDb as { feedback?: FeedbackItem[] }).feedback ?? [];
+      const localFeedback = readBrowserFeedback();
       setFeedback([...localFeedback, ...initialFeedback]);
     };
 
