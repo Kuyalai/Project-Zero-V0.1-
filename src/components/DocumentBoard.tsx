@@ -12,13 +12,19 @@ type Props = {
 
 export function DocumentBoard({ initialDocuments }: Props) {
   const [documents, setDocuments] = useState(initialDocuments);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const sync = () => {
-      const browserDb = readBrowserTrialDb();
-      setDocuments([...browserDb.documents, ...initialDocuments]);
+      try {
+        const browserDb = readBrowserTrialDb();
+        setDocuments([...browserDb.documents, ...initialDocuments]);
+      } catch {
+        setDocuments(initialDocuments);
+      }
     };
 
+    setReady(true);
     sync();
     window.addEventListener("storage", sync);
     window.addEventListener("project-zero-db-updated", sync);
@@ -27,6 +33,10 @@ export function DocumentBoard({ initialDocuments }: Props) {
       window.removeEventListener("project-zero-db-updated", sync);
     };
   }, [initialDocuments]);
+
+  if (!ready) {
+    return <div className="rounded-2xl border border-line bg-white p-5 text-sm text-slate-500">กำลังโหลดข้อมูล...</div>;
+  }
 
   return (
     <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">

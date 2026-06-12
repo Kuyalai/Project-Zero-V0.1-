@@ -13,13 +13,19 @@ type Props = {
 
 export function HandoverBoard({ initialNotes, categories }: Props) {
   const [notes, setNotes] = useState(initialNotes);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const sync = () => {
-      const browserDb = readBrowserTrialDb();
-      setNotes([...browserDb.handoverNotes, ...initialNotes]);
+      try {
+        const browserDb = readBrowserTrialDb();
+        setNotes([...browserDb.handoverNotes, ...initialNotes]);
+      } catch {
+        setNotes(initialNotes);
+      }
     };
 
+    setReady(true);
     sync();
     window.addEventListener("storage", sync);
     window.addEventListener("project-zero-db-updated", sync);
@@ -28,6 +34,10 @@ export function HandoverBoard({ initialNotes, categories }: Props) {
       window.removeEventListener("project-zero-db-updated", sync);
     };
   }, [initialNotes]);
+
+  if (!ready) {
+    return <div className="rounded-2xl border border-line bg-white p-5 text-sm text-slate-500">กำลังโหลดข้อมูล...</div>;
+  }
 
   return (
     <div className="space-y-8">

@@ -13,13 +13,19 @@ type Props = {
 
 export function TaskBoard({ initialTasks, statuses }: Props) {
   const [tasks, setTasks] = useState(initialTasks);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const sync = () => {
-      const browserDb = readBrowserTrialDb();
-      setTasks([...browserDb.tasks, ...initialTasks]);
+      try {
+        const browserDb = readBrowserTrialDb();
+        setTasks([...browserDb.tasks, ...initialTasks]);
+      } catch {
+        setTasks(initialTasks);
+      }
     };
 
+    setReady(true);
     sync();
     window.addEventListener("storage", sync);
     window.addEventListener("project-zero-db-updated", sync);
@@ -28,6 +34,10 @@ export function TaskBoard({ initialTasks, statuses }: Props) {
       window.removeEventListener("project-zero-db-updated", sync);
     };
   }, [initialTasks]);
+
+  if (!ready) {
+    return <div className="rounded-2xl border border-line bg-white p-5 text-sm text-slate-500">กำลังโหลดข้อมูล...</div>;
+  }
 
   return (
     <div className="space-y-6">

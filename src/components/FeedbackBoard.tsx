@@ -21,13 +21,19 @@ type Props = {
 
 export function FeedbackBoard({ initialFeedback }: Props) {
   const [feedback, setFeedback] = useState(initialFeedback);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const sync = () => {
-      const localFeedback = readBrowserFeedback();
-      setFeedback([...localFeedback, ...initialFeedback]);
+      try {
+        const localFeedback = readBrowserFeedback();
+        setFeedback([...localFeedback, ...initialFeedback]);
+      } catch {
+        setFeedback(initialFeedback);
+      }
     };
 
+    setReady(true);
     sync();
     window.addEventListener("storage", sync);
     window.addEventListener("project-zero-db-updated", sync);
@@ -36,6 +42,10 @@ export function FeedbackBoard({ initialFeedback }: Props) {
       window.removeEventListener("project-zero-db-updated", sync);
     };
   }, [initialFeedback]);
+
+  if (!ready) {
+    return <div className="rounded-2xl border border-line bg-white p-5 text-sm text-slate-500">กำลังโหลดข้อมูล...</div>;
+  }
 
   return (
     <div className="space-y-4">
