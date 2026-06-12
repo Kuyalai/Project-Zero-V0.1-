@@ -11,6 +11,15 @@ export function TaskForm() {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [latestTask, setLatestTask] = useState<{
+    title: string;
+    owner: string;
+    team: string;
+    deadline: string;
+    priority: string;
+    status: string;
+    note: string;
+  } | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -18,7 +27,7 @@ export function TaskForm() {
     setLoading(true);
     const formData = new FormData(event.currentTarget);
     const payload = Object.fromEntries(formData.entries());
-    appendBrowserTask({
+    const nextTask = {
       id: `task-local-${Date.now()}`,
       title: String(payload.title ?? ""),
       owner: String(payload.owner ?? ""),
@@ -27,7 +36,9 @@ export function TaskForm() {
       priority: String(payload.priority ?? "ต่ำ") as never,
       status: String(payload.status ?? "ยังไม่เริ่ม") as never,
       note: String(payload.note ?? ""),
-    });
+    };
+    appendBrowserTask(nextTask);
+    setLatestTask(nextTask);
     try {
       const response = await fetch("/api/tasks", {
         method: "POST",
@@ -66,6 +77,16 @@ export function TaskForm() {
         {loading ? "กำลังบันทึก..." : "บันทึกงาน"}
       </ActionButton>
       {message ? <p className={`text-sm font-medium ${isError ? "text-red-600" : "text-emerald-700"}`}>{message}</p> : null}
+      {latestTask ? (
+        <div className="rounded-2xl border border-calm-200 bg-calm-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-calm-700">บันทึกล่าสุด</p>
+          <p className="mt-2 text-base font-semibold text-ink">{latestTask.title}</p>
+          <p className="mt-1 text-sm text-slate-600">
+            {latestTask.owner} · {latestTask.team}
+          </p>
+          <p className="mt-2 text-sm text-slate-600">กำหนดส่ง {latestTask.deadline} · {latestTask.priority} · {latestTask.status}</p>
+        </div>
+      ) : null}
     </form>
   );
 }

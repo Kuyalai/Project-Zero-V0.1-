@@ -11,6 +11,15 @@ export function DocumentForm() {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [latestDocument, setLatestDocument] = useState<{
+    name: string;
+    category: string;
+    owner: string;
+    updatedAt: string;
+    visibility: string;
+    fileUrl: string;
+    summary: string;
+  } | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -18,7 +27,7 @@ export function DocumentForm() {
     setLoading(true);
     const formData = new FormData(event.currentTarget);
     const payload = Object.fromEntries(formData.entries());
-    appendBrowserDocument({
+    const nextDocument = {
       id: `doc-local-${Date.now()}`,
       name: String(payload.name ?? ""),
       category: String(payload.category ?? ""),
@@ -27,7 +36,9 @@ export function DocumentForm() {
       visibility: String(payload.visibility ?? "สาธารณะ") as never,
       fileUrl: String(payload.fileUrl ?? ""),
       summary: String(payload.summary ?? ""),
-    });
+    };
+    appendBrowserDocument(nextDocument);
+    setLatestDocument(nextDocument);
     try {
       const response = await fetch("/api/documents", {
         method: "POST",
@@ -61,6 +72,14 @@ export function DocumentForm() {
         {loading ? "กำลังบันทึก..." : "บันทึกเอกสาร"}
       </ActionButton>
       {message ? <p className={`text-sm font-medium ${isError ? "text-red-600" : "text-emerald-700"}`}>{message}</p> : null}
+      {latestDocument ? (
+        <div className="rounded-2xl border border-calm-200 bg-calm-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-calm-700">บันทึกล่าสุด</p>
+          <p className="mt-2 text-base font-semibold text-ink">{latestDocument.name}</p>
+          <p className="mt-1 text-sm text-slate-600">{latestDocument.category} · {latestDocument.owner}</p>
+          <p className="mt-2 text-sm text-slate-600">อัปเดต {latestDocument.updatedAt} · {latestDocument.visibility}</p>
+        </div>
+      ) : null}
     </form>
   );
 }

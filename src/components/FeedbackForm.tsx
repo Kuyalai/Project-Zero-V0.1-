@@ -17,6 +17,13 @@ export function FeedbackForm() {
   const [success, setSuccess] = useState("");
   const [rating, setRating] = useState(5);
   const [loading, setLoading] = useState(false);
+  const [latestFeedback, setLatestFeedback] = useState<{
+    name: string;
+    role: string;
+    useful: string;
+    suggestions: string;
+    rating: number;
+  } | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,6 +49,7 @@ export function FeedbackForm() {
       ...(((current as unknown as { feedback?: Array<typeof payload & { createdAt: string }> }).feedback) ?? []),
     ];
     writeBrowserTrialDb({ ...(current as unknown as Record<string, unknown>), feedback: nextFeedback } as never);
+    setLatestFeedback(payload);
 
     try {
       const response = await fetch("/api/feedback", {
@@ -166,6 +174,14 @@ export function FeedbackForm() {
         </ActionButton>
         {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
         {success ? <p className="text-sm font-medium text-emerald-700">{success}</p> : null}
+        {latestFeedback ? (
+          <div className="rounded-2xl border border-calm-200 bg-calm-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-calm-700">ความเห็นล่าสุด</p>
+            <p className="mt-2 text-base font-semibold text-ink">{latestFeedback.name}</p>
+            <p className="mt-1 text-sm text-slate-600">{latestFeedback.role} · ให้คะแนน {latestFeedback.rating}/5</p>
+            <p className="mt-2 text-sm text-slate-600">{latestFeedback.suggestions}</p>
+          </div>
+        ) : null}
       </form>
 
       <aside className="space-y-4 rounded-[1.35rem] border border-line bg-calm-50 p-5 shadow-soft sm:p-6">

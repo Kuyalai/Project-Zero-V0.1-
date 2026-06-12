@@ -11,6 +11,13 @@ export function HandoverForm() {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [latestHandover, setLatestHandover] = useState<{
+    title: string;
+    category: string;
+    owner: string;
+    updatedAt: string;
+    content: string[];
+  } | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,14 +35,16 @@ export function HandoverForm() {
       updatedAt: String(formData.get("updatedAt") ?? ""),
       content,
     };
-    appendBrowserHandover({
+    const nextHandover = {
       id: `hand-local-${Date.now()}`,
       title: payload.title,
       category: payload.category as never,
       owner: payload.owner,
       updatedAt: payload.updatedAt,
       content: payload.content,
-    });
+    };
+    appendBrowserHandover(nextHandover);
+    setLatestHandover(nextHandover);
     try {
       const response = await fetch("/api/handover", {
         method: "POST",
@@ -67,6 +76,14 @@ export function HandoverForm() {
         {loading ? "กำลังบันทึก..." : "บันทึกส่งต่อ"}
       </ActionButton>
       {message ? <p className={`text-sm font-medium ${isError ? "text-red-600" : "text-emerald-700"}`}>{message}</p> : null}
+      {latestHandover ? (
+        <div className="rounded-2xl border border-calm-200 bg-calm-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-calm-700">บันทึกล่าสุด</p>
+          <p className="mt-2 text-base font-semibold text-ink">{latestHandover.title}</p>
+          <p className="mt-1 text-sm text-slate-600">{latestHandover.category} · {latestHandover.owner}</p>
+          <p className="mt-2 text-sm text-slate-600">อัปเดต {latestHandover.updatedAt} · {latestHandover.content.length} บรรทัด</p>
+        </div>
+      ) : null}
     </form>
   );
 }
