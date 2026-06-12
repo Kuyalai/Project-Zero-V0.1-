@@ -27,14 +27,26 @@ export function readBrowserTrialDb(): BrowserTrialDb {
 
 export function writeBrowserTrialDb(db: BrowserTrialDb) {
   if (!isBrowser()) return;
-  window.localStorage.setItem(storageKey, JSON.stringify(db));
-  window.dispatchEvent(new Event("project-zero-db-updated"));
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(db));
+  } catch {
+    return;
+  }
+  const event = document.createEvent("Event");
+  event.initEvent("project-zero-db-updated", true, true);
+  window.dispatchEvent(event);
 }
 
 export function resetBrowserTrialDb() {
   if (!isBrowser()) return;
-  window.localStorage.removeItem(storageKey);
-  window.dispatchEvent(new Event("project-zero-db-updated"));
+  try {
+    window.localStorage.removeItem(storageKey);
+  } catch {
+    return;
+  }
+  const event = document.createEvent("Event");
+  event.initEvent("project-zero-db-updated", true, true);
+  window.dispatchEvent(event);
 }
 
 export function appendBrowserTask(task: TaskItem) {
